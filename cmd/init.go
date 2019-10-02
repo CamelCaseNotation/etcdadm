@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"sigs.k8s.io/etcdadm/apis"
+	"sigs.k8s.io/etcdadm/auth"
 	"sigs.k8s.io/etcdadm/binary"
 	"sigs.k8s.io/etcdadm/certs"
 	"sigs.k8s.io/etcdadm/constants"
@@ -121,6 +122,9 @@ var initCmd = &cobra.Command{
 		if err = initSystem.EnableAndStartService(constants.UnitFileBaseName); err != nil {
 			log.Fatalf("[start] Error: %s", err)
 		}
+		if err = auth.SetupRootUserConfig(&etcdAdmConfig); err != nil {
+			log.Printf("[auth] Warning: %s", err)
+		}
 		if err = service.WriteEtcdctlEnvFile(&etcdAdmConfig); err != nil {
 			log.Printf("[configure] Warning: %s", err)
 		}
@@ -143,6 +147,12 @@ var initCmd = &cobra.Command{
 		} else {
 			log.Fatalf("[health] Local etcd endpoint is unhealthy: %v", err)
 		}
+
+		// Create root user and enable auth only after etcd is up and healthy (ready to service requests)
+		if err = auth.EnableAuthWithRootUser(&etcdAdmConfig); err != nil {
+			log.Fatalf("[auth] Error: %s", err)
+		}
+		// Write etcdctl/wrapper env files only after creating root user since it sets the password in cfg.EtcdAdmConfig
 
 		// Output etcdadm join command
 		// TODO print all advertised client URLs (first, join must parse than one endpoint)

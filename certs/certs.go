@@ -176,6 +176,34 @@ func CreateAPIServerEtcdClientCertAndKeyFiles(cfg *apis.EtcdAdmConfig) error {
 	)
 }
 
+// CreateTenantClientCertAndKeyFiles create a new client certificate for a user in etcd
+// If the tenant certificate and key file already exist in the target folder, they are used only if evaluated equal; otherwise an error is returned.
+// It assumes the etcd CA certificate and key file exist in the CertificatesDir
+func CreateTenantClientCertAndKeyFiles(cfg *apis.EtcdAdmConfig, name string) error {
+	log.Printf("creating a new client certificate for the user %s for access to prefix /%s/\n", name, name)
+	log.Printf("%s/%s.crt is used by apiserver flag '--etcd-certfile'\n", cfg.CertificatesDir, name)
+	log.Printf("%s/%s.key is used by apiserver flag '--etcd-keyfile'\n", cfg.CertificatesDir, name)
+	log.Printf("%s/%s is used by apiserver flag '--etcd-cafile'\n", cfg.CertificatesDir, constants.EtcdCACertName)
+	etcdCACert, etcdCAKey, err := loadCertificateAuthority(cfg.CertificatesDir, constants.EtcdCACertAndKeyBaseName)
+	if err != nil {
+		return err
+	}
+	commonName := fmt.Sprintf("%s", name)
+	organization := constants.MastersGroup
+	tenantClientCert, tenantClientKey, err := NewEtcdClientCertAndKey(etcdCACert, etcdCAKey, commonName, organization)
+	if err != nil {
+		return err
+	}
+
+	return writeCertificateFilesIfNotExist(
+		cfg.CertificatesDir,
+		name,
+		etcdCACert,
+		tenantClientCert,
+		tenantClientKey,
+	)
+}
+
 // NewEtcdCACertAndKey generate a self signed etcd CA.
 func NewEtcdCACertAndKey() (*x509.Certificate, *rsa.PrivateKey, error) {
 

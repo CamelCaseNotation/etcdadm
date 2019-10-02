@@ -145,6 +145,8 @@ export ETCDCTL_CERT={{ .EtcdctlCertFile }}
 export ETCDCTL_KEY={{ .EtcdctlKeyFile }}
 
 export ETCDCTL_DIAL_TIMEOUT=3s
+
+export ETCDCTL_USER=root:{{ .EtcdctlRootUserPassword }}
 `
 	DefaultSkipRemoveMember = false
 	DefaultCacheBaseDir     = "/var/cache/etcdadm/"

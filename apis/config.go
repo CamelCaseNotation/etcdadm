@@ -50,6 +50,7 @@ type EtcdAdmConfig struct {
 
 	EtcdctlCertFile string
 	EtcdctlKeyFile  string
+	EtcdctlRootUserPassword string
 
 	DataDir    string
 	InstallDir string
@@ -80,7 +81,7 @@ type EtcdAdmConfig struct {
 	InitialClusterToken string
 	InitialClusterState string
 
-	// GOMAXPROCS sets the max num of etcd processes will use
+	// GOMAXPROCS sets the max num of processes etcd will use
 	GOMAXPROCS int
 
 	Snapshot      string
